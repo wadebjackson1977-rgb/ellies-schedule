@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ellies weekly time schedule</title>
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Load React -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Load Babel to translate the React code in the browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-orange-50 font-sans pb-32">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const TOTAL_WEEKLY_HOURS = 168;
+    const initialCategories = [
+      { id: 'school', label: 'School and travel', hours: 33, isFixed: false },
+      { id: 'homework', label: 'Homework and revision', hours: 10, isFixed: false },
+      { id: 'law', label: 'External law course', hours: 6, isFixed: false },
+      { id: 'work', label: 'Part-time work', hours: 8, isFixed: false },
+      { id: 'driving', label: 'Supervised driving', hours: 2, isFixed: false },
+      { id: 'sleep', label: 'Sleep', hours: 63, isFixed: true },
+      { id: 'meals', label: 'Meals and personal routines', hours: 18, isFixed: false },
+    ];
+
+    function App() {
+      const [categories, setCategories] = useState(initialCategories);
+      const [remainingTime, setRemainingTime] = useState(0);
+
+      useEffect(() => {
+        const totalUsed = categories.reduce((sum, cat) => sum + cat.hours, 0);
+        setRemainingTime(TOTAL_WEEKLY_HOURS - totalUsed);
+      }, [categories]);
+
+      const handleSliderChange = (id, newHours) => {
+        setCategories((prevCategories) =>
+          prevCategories.map((cat) => {
+            if (cat.id === id && !cat.isFixed) {
+              return { ...cat, hours: parseInt(newHours, 10) };
+            }
+            return cat;
+          })
+        );
+      };
+
+      return (
+        <div>
+          <header className="bg-white p-6 shadow-sm border-b border-orange-100">
+            <h1 className="text-2xl font-bold text-gray-800">Ellies weekly time schedule</h1>
+          </header>
+
+          <main className="max-w-md mx-auto bg-white min-h-screen shadow-md p-6">
+            <section aria-label="Time categories">
+              {categories.map((category) => (
+                <div key={category.id} className="mb-8">
+                  <div className="flex justify-between items-center mb-2">
+                    <label htmlFor={category.id} className="text-gray-800 font-medium text-lg">
+                      {category.label}
+                    </label>
+                    <span className="text-gray-900 font-semibold text-lg" aria-hidden="true">
+                      {category.hours} hrs
+                    </span>
+                  </div>
+                  
+                  <span className="sr-only">
+                    {category.label} is set to {category.hours} hours.
+                    {category.isFixed && " This value is fixed and cannot be changed."}
+                  </span>
+
+                  <input
+                    type="range"
+                    id={category.id}
+                    min="0"
+                    max={category.isFixed ? category.hours : "168"}
+                    value={category.hours}
+                    onChange={(e) => handleSliderChange(category.id, e.target.value)}
+                    disabled={category.isFixed}
+                    className={`w-full h-2 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-4 focus:ring-orange-300 focus:ring-opacity-50 ${
+                      category.isFixed ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-200 accent-gray-800'
+                    }`}
+                    aria-valuemin="0"
+                    aria-valuemax={category.isFixed ? category.hours : "168"}
+                    aria-valuenow={category.hours}
+                    aria-disabled={category.isFixed}
+                  />
+                </div>
+              ))}
+            </section>
+          </main>
+
+          <footer className="fixed bottom-0 w-full max-w-md left-1/2 transform -translate-x-1/2 bg-orange-100 border-t-2 border-orange-200 p-6 shadow-lg z-10">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Time remaining</h2>
+              <div 
+                className={`text-2xl font-black px-4 py-2 rounded-lg ${
+                  remainingTime < 0 ? 'bg-red-200 text-red-800' : 'bg-white text-gray-900 shadow-sm'
+                }`}
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {remainingTime} hrs
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
